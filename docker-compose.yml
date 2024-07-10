@@ -37,6 +37,8 @@ services:
     build: .
     ports:
       - "3000:3000"
+    volumes:
+      - .:/usr/src/app  # Mount the project directory - Run on Nodemon
     depends_on:
       - redis-stack
     networks:
