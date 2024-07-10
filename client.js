@@ -1,13 +1,10 @@
-const Redis = require('ioredis');
+const redis = require('redis');
 
-const redisHost = '127.0.0.1';
-const redisPort = 6379;
-// const redisDatabase = 0; // Uncomment if you need to specify a database
+const redisHost = '127.0.0.1'; // Ensure this matches the Redis container host
+const redisPort = 6379;        // Ensure this matches the Redis container port
 
-const client = new Redis({
-    host: redisHost,
-    port: redisPort,
-    // db: redisDatabase, // Uncomment if you need to specify a database
+const client = redis.createClient({
+    url: `redis://${redisHost}:${redisPort}`,
 });
 
 client.on('connect', () => {
@@ -17,5 +14,7 @@ client.on('connect', () => {
 client.on('error', (err) => {
     console.error('Redis connection error:', err);
 });
+
+client.connect().catch(console.error);
 
 module.exports = client;
