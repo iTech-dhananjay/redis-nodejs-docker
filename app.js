@@ -24,6 +24,10 @@ redis.on("error", (err) => {
 });
 
 app.get('/', (req, res) => {
+    const clientIP = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    console.log(clientIP)
+
+   // console.log(req.ip,'IP Address') //::ffff:192.168.65.1 IP Address
     res.send('Hello World!');
 });
 
