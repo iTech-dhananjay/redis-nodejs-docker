@@ -1,10 +1,11 @@
 import express from 'express';
 import { getProducts, getProductDetail } from "./api/products.js";
 import Redis from 'ioredis';
+import {getCachedData} from "./middleware/redis.js";
 
 const app = express();
 
-const redis = new Redis({
+export const redis = new Redis({
     host: 'redis-stack',  // Docker service name for Redis Stack
     port: 6379
 });
@@ -27,20 +28,10 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint to fetch products
-app.get('/products', async (req, res) => {
+app.get('/products', getCachedData("products"), async(req, res) => {
     try {
-        // Attempt to fetch products from Redis cache
-        let products = await redis.get("products");
-
-        if (products) {
-            // Products found in cache, return them
-            return res.json({
-                products: JSON.parse(products)
-            });
-        }
-
         // Products not found in cache, fetch from database
-        products = await getProducts();
+       let products = await getProducts();
 
         // Set products in Redis cache with expiration (50 seconds)
         await redis.setex("products", 100, JSON.stringify(products));
@@ -58,7 +49,7 @@ app.get('/products', async (req, res) => {
 });
 
 // Endpoint to fetch product detail by ID
-app.get('/products/:id', async (req, res) => {
+app.get('/product/:id', async (req, res) => {
     try {
         const {id} = req.params;
         const key = `product:${id}`;
@@ -70,15 +61,28 @@ app.get('/products/:id', async (req, res) => {
         }
 
         product =  await getProductDetail(id)
-        console.log(product,'product')
         await redis.set(key, JSON.stringify(product));
         return res.json(product);
 
     } catch (err) {
-        console.log(err)
         res.status(500).send('Internal Server Error');
     }
 });
+
+app.get('/order/:id', async (req, res) => {
+    const productId = req.params.id;
+    const key = `product:${productId}`;
+
+    //Any Mutation to database here, like creating new order in database, reducing/increasing product stock in database
+
+    await redis.del(key)
+
+
+    return res.json({
+        message: `Order Placed Successfully, product ${productId} is ordered`,
+    })
+
+})
 
 app.listen(3000, () => {
     console.log('Server started on port 3000');
