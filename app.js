@@ -1,5 +1,5 @@
 import express from 'express';
-import { getProducts } from "./api/products.js";
+import { getProducts, getProductDetail } from "./api/products.js";
 import Redis from 'ioredis';
 
 const app = express();
@@ -43,7 +43,7 @@ app.get('/products', async (req, res) => {
         products = await getProducts();
 
         // Set products in Redis cache with expiration (50 seconds)
-        await redis.setex("products", 30, JSON.stringify(products));
+        await redis.setex("products", 100, JSON.stringify(products));
 
         // Check if the key is set correctly with expiration
         const ttl = await redis.ttl('products');
@@ -53,6 +53,29 @@ app.get('/products', async (req, res) => {
         res.json(products);
     } catch (err) {
         console.error('Error fetching products:', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+// Endpoint to fetch product detail by ID
+app.get('/products/:id', async (req, res) => {
+    try {
+        const {id} = req.params;
+        const key = `product:${id}`;
+        let product = await redis.get(key)
+        if(product){
+            return res.json({
+                product: JSON.parse(product)
+            });
+        }
+
+        product =  await getProductDetail(id)
+        console.log(product,'product')
+        await redis.set(key, JSON.stringify(product));
+        return res.json(product);
+
+    } catch (err) {
+        console.log(err)
         res.status(500).send('Internal Server Error');
     }
 });

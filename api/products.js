@@ -13,3 +13,18 @@ export const getProducts = () => {
         },2000)
     })
 }
+
+
+export const getProductDetail = (id) => {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve({
+                product: {
+                    id: id,
+                    name: `Product ${id}`,
+                    price:Math.floor(Math.random()*1000),
+                }
+            })
+        },2000)
+    })
+}
