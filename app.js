@@ -4,15 +4,15 @@ import Redis from 'ioredis';
 
 const app = express();
 
-// export const redis = new Redis({
-//     host: "127.0.0.1",
-//     port: 6379,
-// });
-
 const redis = new Redis({
-    host: 'redis',  // Docker service name for Redis
+    host: 'redis-stack',  // Docker service name for Redis Stack
     port: 6379
 });
+
+// const redis = new Redis({
+//     host: 'redis',  // Docker service name for Redis
+//     port: 6379
+// });
 
 redis.on("connect", () => {
     console.log('Redis connected');
