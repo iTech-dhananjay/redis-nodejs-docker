@@ -29,11 +29,9 @@ app.get('/', (req, res) => {
 app.get('/products', async (req, res) => {
     try {
         const isExists = await redis.exists("products");
-        console.log(`Is 'products' key exists: ${isExists}`);
 
         if (isExists) {
             const products = await redis.get("products");
-            console.log('Fetched products from Redis:', products);
             return res.json({
                 products: JSON.parse(products)
             });
@@ -41,7 +39,6 @@ app.get('/products', async (req, res) => {
 
         const products = await getProducts();
         await redis.set("products", JSON.stringify(products));
-        console.log('Set products in Redis:', products);
         res.json(products);
     } catch (err) {
         console.error('Error fetching products:', err);
