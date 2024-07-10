@@ -26,18 +26,26 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
+// Endpoint to fetch products
 app.get('/products', async (req, res) => {
     try {
-        let products = redis.get("products");
+        // Attempt to fetch products from Redis cache
+        let products = await redis.get("products");
 
         if (products) {
+            // Products found in cache, return them
             return res.json({
                 products: JSON.parse(products)
             });
         }
 
-         products = await getProducts();
-        await redis.set("products", JSON.stringify(products));
+        // Products not found in cache, fetch from database
+        products = await getProducts();
+
+        // Set products in Redis cache with expiration (50 seconds)
+        await redis.setex("products", 50, JSON.stringify(products));
+
+        // Return products to client
         res.json(products);
     } catch (err) {
         console.error('Error fetching products:', err);
