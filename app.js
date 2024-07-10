@@ -28,16 +28,15 @@ app.get('/', (req, res) => {
 
 app.get('/products', async (req, res) => {
     try {
-        const isExists = await redis.exists("products");
+        let products = redis.get("products");
 
-        if (isExists) {
-            const products = await redis.get("products");
+        if (products) {
             return res.json({
                 products: JSON.parse(products)
             });
         }
 
-        const products = await getProducts();
+         products = await getProducts();
         await redis.set("products", JSON.stringify(products));
         res.json(products);
     } catch (err) {
