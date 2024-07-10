@@ -45,6 +45,10 @@ app.get('/products', async (req, res) => {
         // Set products in Redis cache with expiration (50 seconds)
         await redis.setex("products", 50, JSON.stringify(products));
 
+        // Check if the key is set correctly with expiration
+        const ttl = await redis.ttl('products');
+        console.log('TTL for products key:', ttl);
+
         // Return products to client
         res.json(products);
     } catch (err) {
