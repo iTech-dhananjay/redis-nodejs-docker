@@ -119,4 +119,3 @@ This will stop and remove all the containers defined in your `docker-compose.yml
 ---
 
 Enjoy using your Node.js application with Redis Stack and RedisInsight!
-```
