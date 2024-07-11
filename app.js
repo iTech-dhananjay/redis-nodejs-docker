@@ -1,7 +1,7 @@
 import express from 'express';
 import { getProducts, getProductDetail } from "./api/products.js";
 import Redis from 'ioredis';
-import {getCachedData} from "./middleware/redis.js";
+import {getCachedData, rateLimiter} from "./middleware/redis.js";
 
 const app = express();
 
@@ -23,16 +23,19 @@ redis.on("error", (err) => {
     console.error('Redis connection error:', err);
 });
 
-app.get('/', (req, res) => {
-    const clientIP = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    console.log(clientIP)
+app.get('/', rateLimiter({limit:10, timer:60, key: "home" }), async (req, res) => {
+    try {
 
-   // console.log(req.ip,'IP Address') //::ffff:192.168.65.1 IP Address
-    res.send('Hello World!');
+
+        res.send(`Hello World!`);
+    } catch (error) {
+        console.error('Error handling request:', error);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
 // Endpoint to fetch products
-app.get('/products', getCachedData("products"), async(req, res) => {
+app.get('/products',rateLimiter({limit:5, timer:45, key: "products" }), getCachedData("products"), async(req, res) => {
     try {
         // Products not found in cache, fetch from database
        let products = await getProducts();
